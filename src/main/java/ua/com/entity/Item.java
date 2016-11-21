@@ -54,6 +54,7 @@ public class Item implements Serializable {
 
 
     @JsonProperty("id")
+    @NaturalId
     private Integer id;
     @JsonProperty("url")
     @Column(name = "url", length = 1028)

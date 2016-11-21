@@ -31,18 +31,18 @@ public class ItemController {
 
     @CrossOrigin
     @RequestMapping(value = "/item", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Item>> getItem(@RequestParam(value = "id", required = false) String id, @RequestParam(value = "date", required = false) String date) throws IOException {
+    public ResponseEntity<Item> getItem(@RequestParam(value = "id", required = false) Integer id, @RequestParam(value = "uuid", required = false) String uuid) throws IOException {
         HttpHeaders headers = new HttpHeaders();
-
-        if (null != date) {
-
-            headers.setAccessControlAllowOrigin("http://185.102.164.14");
-            return new ResponseEntity<List<Item>>(itemDAO.getbyDate(date), headers, HttpStatus.OK);
-
+        Item item;
+        if (null != id) {
+            item = itemDAO.getbyUUID(java.util.UUID.fromString(uuid));
         } else {
-            headers.setAccessControlAllowOrigin("http://185.102.164.14");
-            return new ResponseEntity<List<Item>>(itemDAO.getbyId(java.util.UUID.fromString(id)),  headers,  HttpStatus.OK);
+            item = itemDAO.getbyId(id);
         }
+        if (null == item) {
+            return new ResponseEntity<Item>(headers, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<Item>(itemDAO.getbyUUID(java.util.UUID.fromString(uuid)), headers, HttpStatus.OK);
     }
 
     @CrossOrigin
@@ -52,19 +52,29 @@ public class ItemController {
         HttpHeaders headers = new HttpHeaders();
         return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
     }
+
     @CrossOrigin
     @RequestMapping(value = "/item/list", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public @ResponseBody ResponseEntity<List<Item>> listAllUsers() throws Exception {
-        List<Item> items = itemDAO.getAll();
+    public
+    @ResponseBody
+    ResponseEntity<List<Item>> listUsers(@RequestParam(value = "date", required = false) String date,
+                                         @RequestParam(value = "offset", required = false) Integer offset,
+                                         @RequestParam(value = "maxResults", required = false) Integer maxResults) throws Exception {
         HttpHeaders headers = new HttpHeaders();
-        headers.setAccessControlAllowOrigin("*");
+        List<Item> items;
+        if (null != date) {
+            items = itemDAO.getbyDate(date, offset, maxResults);
+        } else {
+            items = itemDAO.getAll();
+        }
 
         if (items == null) {
             log.error("Users not found");
-            return new ResponseEntity<List<Item>>(headers,HttpStatus.NOT_FOUND);
+            return new ResponseEntity<List<Item>>(headers, HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<List<Item>>(items, headers, HttpStatus.OK);
     }
+
     @CrossOrigin
     @RequestMapping(value = "/item/execute", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> getUser(@RequestParam("action") String action, @RequestParam("date") String date) throws Exception {
@@ -75,12 +85,7 @@ public class ItemController {
         URL url = new URL("http://api.tvmaze.com/schedule?date=" + date);
         log.info(url);
         Item[] items = mapper.readValue(url, Item[].class);
-
-        for (Item item : items) {
-            log.info("Save item: " + item);
-            itemDAO.saveItem(item);
-        }
-
+        itemDAO.saveItemList(items);
         HttpHeaders headers = new HttpHeaders();
         headers.setAccessControlAllowOrigin("http://185.102.164.14");
         return new ResponseEntity<Void>(headers, HttpStatus.OK);

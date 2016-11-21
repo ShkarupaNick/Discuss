@@ -22,42 +22,65 @@ public class ItemDAO {
     Session session = null;
     Transaction transaction = null;
 
-    public void saveItem(Item item) {
+    private void begin() {
         session = sessionFactory.openSession();
         transaction = session.beginTransaction();
-        session.save(item);
+    }
+
+    private void end() {
         transaction.commit();
         session.close();
+    }
+
+
+    public void saveItem(Item item) {
+        begin();
+        session.save(item);
+        end();
+    }
+
+    public void saveItemList(Item[] items) {
+        begin();
+        for (Item item : items) {
+            log.trace("Save item: " + item);
+            session.save(item);
+        }
+        end();
     }
 
 
     public List getAll() {
-        session = sessionFactory.openSession();
-        transaction = session.beginTransaction();
-
+        begin();
         log.error(session.createCriteria(Item.class).list());
         List<Item> userList = session.createCriteria(Item.class).list();
-        transaction.commit();
-        session.close();
+        end();
         return userList;
     }
 
-    public List<Item> getbyId(UUID id){
-        session = sessionFactory.openSession();
-        transaction = session.beginTransaction();
-        List<Item> items = session.createQuery("from Item i where i.uuid = :id").setParameter("id",id).list();
-        transaction.commit();
-        session.close();
-        return items;
+    public Item getbyUUID(UUID uuid) {
+        begin();
+        Item item = (Item) session.byId(Item.class).load(uuid);
+        end();
+        return item;
+    }
+
+    public Item getbyId(Integer id) {
+        begin();
+        Item item = session.bySimpleNaturalId(Item.class).load(id);
+        end();
+        return item;
     }
 
 
-    public List<Item> getbyDate(String date){
-        session = sessionFactory.openSession();
-        transaction = session.beginTransaction();
-        List<Item> items = session.createQuery("from Item i where i.airdate= :date").setParameter("date",date).list();
-        transaction.commit();
-        session.close();
+    public List<Item> getbyDate(String date, Integer offset, Integer maxResults) {
+        begin();
+        List<Item> items = session
+                .createCriteria(Item.class)
+                .setFirstResult(offset != null ? offset : 0)
+                .setMaxResults(maxResults != null ? maxResults : 10)
+                .list();
+        //List<Item> items = session.createQuery("from Item i where i.airdate= :date").setParameter("date",date).list();
+        end();
         return items;
     }
 }

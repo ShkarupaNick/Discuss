@@ -47,10 +47,10 @@ public class Schedule implements Serializable {
 
 
     @JsonProperty("days")
-    @ElementCollection (targetClass = String.class, fetch = FetchType.EAGER)
+    @ElementCollection (targetClass = String.class, fetch = FetchType.LAZY)
     @JoinTable(name = "day", joinColumns = @JoinColumn(name = "day_id"))
     @Column(name = "day")
-    @Fetch (FetchMode.SELECT)
+    @Fetch (FetchMode.JOIN)
     private Set<String> days = new HashSet<String>();
 
 
