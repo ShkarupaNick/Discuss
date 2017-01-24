@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import ua.com.controller.ItemController;
@@ -40,12 +41,18 @@ public class ItemDAO {
     }
 
     public void saveItemList(Item[] items) {
-        begin();
+
         for (Item item : items) {
-            log.trace("Save item: " + item);
-            session.save(item);
+            begin();
+            try {
+                session.save(item);
+            }
+            catch (Exception e){
+                log.error(e.getMessage());
+            }
+            end();
         }
-        end();
+
     }
 
 
@@ -66,7 +73,7 @@ public class ItemDAO {
 
     public Item getbyId(Integer id) {
         begin();
-        Item item = session.bySimpleNaturalId(Item.class).load(id);
+        Item item = (Item)session.createCriteria(Item.class).add(Restrictions.eq("id", id)).list().get(0);
         end();
         return item;
     }
@@ -76,6 +83,7 @@ public class ItemDAO {
         begin();
         List<Item> items = session
                 .createCriteria(Item.class)
+                .add(Restrictions.eq("airdate", date) )
                 .setFirstResult(offset != null ? offset : 0)
                 .setMaxResults(maxResults != null ? maxResults : 10)
                 .list();

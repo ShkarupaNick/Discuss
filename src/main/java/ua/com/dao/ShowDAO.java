@@ -34,8 +34,6 @@ public class ShowDAO {
         session.close();
     }
 
-
-
     public List getAll() {
         begin();
         log.error(session.createCriteria(Show.class).list());

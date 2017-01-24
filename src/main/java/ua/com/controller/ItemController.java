@@ -34,7 +34,7 @@ public class ItemController {
     public ResponseEntity<Item> getItem(@RequestParam(value = "id", required = false) Integer id, @RequestParam(value = "uuid", required = false) String uuid) throws IOException {
         HttpHeaders headers = new HttpHeaders();
         Item item;
-        if (null != id) {
+        if (null != uuid) {
             item = itemDAO.getbyUUID(java.util.UUID.fromString(uuid));
         } else {
             item = itemDAO.getbyId(id);

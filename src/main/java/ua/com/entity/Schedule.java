@@ -47,11 +47,10 @@ public class Schedule implements Serializable {
 
 
     @JsonProperty("days")
-    @ElementCollection (targetClass = String.class, fetch = FetchType.LAZY)
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Fetch(FetchMode.SUBSELECT)
     @JoinTable(name = "day", joinColumns = @JoinColumn(name = "day_id"))
-    @Column(name = "day")
-    @Fetch (FetchMode.JOIN)
-    private Set<String> days = new HashSet<String>();
+    private List<String> days = new ArrayList<>();
 
 
     @JsonIgnore
@@ -73,7 +72,6 @@ public class Schedule implements Serializable {
      * @param time
      *     The time
      */
-    @JsonProperty("time")
     public void setTime(String time) {
         this.time = time;
     }
@@ -84,7 +82,7 @@ public class Schedule implements Serializable {
      *     The days
      */
 
-    public Set<String> getDays() {
+    public List<String> getDays() {
         return days;
     }
 
@@ -93,8 +91,8 @@ public class Schedule implements Serializable {
      * @param days
      *     The days
      */
-    @JsonProperty("days")
-    public void setDays(Set<String> days) {
+
+    public void setDays(List<String> days) {
         this.days = days;
     }
 
